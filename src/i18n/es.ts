@@ -7,8 +7,8 @@ export const es: Messages = {
   languageName: 'Español',
 
   app: {
-    tagline: (start, goal, height) =>
-      `${String(start)} → ${String(goal)} kg · ${String(height)} cm`,
+    name: 'Cuaderno',
+    tagline: (goal, days) => `${goal} · ${String(days)} días por semana`,
     tabs: { today: 'Hoy', weight: 'Peso', training: 'Entreno', progress: 'Progreso' },
     language: 'Idioma',
   },
@@ -24,7 +24,7 @@ export const es: Messages = {
     mealsTitle: 'Comidas de hoy',
     mealCount: (n) => plural(n, 'comida', 'comidas'),
     empty:
-      'Aún no has apuntado nada hoy. Describe tu comida, sácale una foto o toca una de las rápidas de tu plan.',
+      'Aún no has apuntado nada hoy. Describe tu comida, sácale una foto o toca una de las rápidas.',
     delete: (name) => `Borrar ${name}`,
     proteinShort: 'g prot',
   },
@@ -39,7 +39,7 @@ export const es: Messages = {
     estimating: 'Calculando…',
     manual: 'Meter a mano',
     needInput: 'Describe la comida o añade una foto',
-    quickAdds: 'Rápidas de tu plan',
+    quickAdds: 'Rápidas',
     added: (kcal) => `Añadido: ${String(kcal)} kcal`,
     saved: 'Comida guardada',
   },
@@ -78,20 +78,22 @@ export const es: Messages = {
     vsLastWeek: 'vs semana anterior',
     toGo: 'Falta',
     paceUnknown:
-      'Pésate 3-4 mañanas por semana. Con dos semanas de datos verás si vas al ritmo del plan.',
+      'Pésate 3-4 mañanas por semana. Con dos semanas de datos verás si vas al ritmo de tu objetivo.',
     pace: {
-      slow: {
-        label: 'Lento',
-        text: 'Por debajo de +0,2 kg por semana. Si se repite otra semana, sube unas 200 kcal (un vaso de leche y una cucharada de crema de cacahuete).',
-      },
-      'on-track': { label: 'En rango', text: 'Buen ritmo para ganar músculo con poca grasa.' },
-      fast: {
-        label: 'Rápido',
-        text: 'Más de +0,5 kg por semana. Baja 150-200 kcal y vigila la cintura.',
-      },
+      below: (range) =>
+        `Fuera de tu objetivo de ${range} kg por semana. Si se repite otra semana, sube unas 150-200 kcal.`,
+      'on-track': (range) => `Dentro de tu objetivo de ${range} kg por semana. Sigue así.`,
+      above: (range) =>
+        `Fuera de tu objetivo de ${range} kg por semana. Si se repite otra semana, baja unas 150-200 kcal.`,
     },
-    chartCaption:
-      'Puntos: peso diario. Línea: media de 7 días. Objetivo del plan: +0,2 a +0,3 kg por semana.',
+    paceLabel: {
+      gain: { below: 'Muy lento', 'on-track': 'En rango', above: 'Muy rápido' },
+      lose: { below: 'Muy rápido', 'on-track': 'En rango', above: 'Muy lento' },
+      maintain: { below: 'Bajando', 'on-track': 'Estable', above: 'Subiendo' },
+    },
+    range: (min, max) => `${min} a ${max}`,
+    chartCaption: (range) =>
+      `Puntos: peso diario. Línea: media de 7 días. Tu objetivo: ${range} kg por semana.`,
     chartLabel: (weeks) => `Peso de las últimas ${String(weeks)} semanas`,
     chartEmpty: 'Sin datos todavía',
     log: 'Registros',
@@ -129,14 +131,14 @@ export const es: Messages = {
   progress: {
     weekTitle: 'Control de la semana',
     checks: {
-      weight: 'La media de peso subió 0,2-0,3 kg',
+      weight: (range) => `Cambio semanal de ${range} kg`,
       weightNoData: 'Faltan pesos de dos semanas',
       weightDetail: (delta) => `Cambio: ${delta} kg`,
-      sessions: 'Hice 3-4 entrenos',
+      sessions: (n) => `Entrené ${plural(n, 'vez', 'veces')}`,
       sessionsDetail: (n) => `${String(n)} esta semana`,
       improved: 'Subí peso o repeticiones en algún ejercicio',
       improvedNone: 'Ningún ejercicio mejorado todavía',
-      protein: (min) => `Proteína de ${String(min)} g o más la mayoría de días`,
+      protein: (target) => `Unos ${String(target)} g de proteína la mayoría de días`,
       proteinNoData: 'Sin comidas registradas',
       proteinDetail: (hit, logged) => `${String(hit)} de ${String(logged)} días registrados`,
       sleep: 'Dormí 7 horas o más la mayoría de noches',
@@ -159,17 +161,46 @@ export const es: Messages = {
     pastEmpty: 'Tus análisis se guardan aquí para comparar semana a semana.',
   },
 
-  settings: {
-    title: 'Ajustes',
+  profile: {
+    welcome: 'Te damos la bienvenida',
+    intro:
+      'Cuéntanos un poco sobre ti. Calcularemos tus calorías y proteína diarias y elegiremos una rutina que encaje con los días que puedes entrenar. Puedes cambiarlo todo después.',
+    title: 'Tu perfil',
+    sex: 'Sexo',
+    sexes: { male: 'Hombre', female: 'Mujer' },
+    age: 'Edad',
+    height: 'Altura (cm)',
+    weight: 'Peso (kg)',
+    goal: 'Objetivo',
+    goals: { gain: 'Ganar músculo', maintain: 'Mantener', lose: 'Perder grasa' },
+    goalWeight: 'Peso objetivo (kg)',
+    activity: 'Actividad fuera del gimnasio',
+    activities: { low: 'Baja', moderate: 'Media', high: 'Alta' },
+    activityHint: {
+      low: 'Trabajo sentado, menos de 6.000 pasos al día',
+      moderate: 'De pie parte del día, 6.000-10.000 pasos',
+      high: 'Trabajo físico o más de 10.000 pasos al día',
+    },
+    days: 'Días que puedes entrenar por semana',
+    split: (routines) => `Tu rotación: ${routines}`,
+    targets: 'Objetivos diarios',
     kcal: 'Calorías al día',
     protein: 'Proteína al día (g)',
-    goal: 'Peso objetivo (kg)',
+    targetsHint:
+      'Recomendados según tu perfil. Cámbialos si ya conoces tus números; la tendencia de peso semanal te dirá si hay que ajustar.',
+    start: 'Empezar',
+    save: 'Guardar perfil',
+    saved: 'Perfil guardado',
+    invalid: 'Revisa los números',
+  },
+
+  settings: {
+    title: 'IA',
     apiKey: 'Clave de la API de Anthropic',
     apiKeyHelp:
       'Las funciones de IA usan tu propia clave. Se guarda solo en este dispositivo y se envía únicamente a la API de Anthropic. Créala en',
-    save: 'Guardar ajustes',
-    saved: 'Ajustes guardados',
-    invalid: 'Revisa los números',
+    save: 'Guardar clave',
+    saved: 'Clave guardada',
   },
 
   backup: {
@@ -183,11 +214,11 @@ export const es: Messages = {
     cancel: 'Cancelar',
     restored: (weights, sessions) =>
       `Copia restaurada: ${plural(weights, 'peso', 'pesos')}, ${plural(sessions, 'sesión', 'sesiones')}`,
-    invalid: 'Ese archivo no es una copia válida de Cuaderno 70',
+    invalid: 'Ese archivo no es una copia válida de Cuaderno',
   },
 
   errors: {
-    missingKey: 'Añade tu clave de la API de Anthropic en Progreso → Ajustes.',
+    missingKey: 'Añade tu clave de la API de Anthropic en Progreso → IA.',
     invalidKey: 'La clave de la API no es válida.',
     permission: 'Tu clave no tiene permiso para usar este modelo.',
     rateLimited: 'Demasiadas consultas seguidas o sin saldo. Prueba más tarde.',
@@ -201,14 +232,13 @@ export const es: Messages = {
   routines: {
     push: { name: 'Push', focus: 'Pecho, hombro y tríceps' },
     pull: { name: 'Pull', focus: 'Espalda y bíceps' },
-    legs: { name: 'Pierna', focus: 'Solo hay un día de pierna: no te lo saltes' },
-    arms: {
-      name: 'Brazos y hombros',
-      focus: 'Brazos, hombros y abdominales. Deja un día entre Push y este',
-    },
-    fullA: { name: 'Full A', focus: 'Cuerpo completo, semana de 3 días' },
-    fullB: { name: 'Full B', focus: 'Cuerpo completo, semana de 3 días' },
-    fullC: { name: 'Full C', focus: 'Cuerpo completo, semana de 3 días' },
+    legs: { name: 'Pierna', focus: 'Cuádriceps, femorales, glúteos y gemelos' },
+    arms: { name: 'Brazos y hombros', focus: 'Brazos, hombros y abdominales' },
+    upper: { name: 'Torso', focus: 'Pecho, espalda, hombros y brazos' },
+    lower: { name: 'Pierna y core', focus: 'Piernas y abdomen' },
+    fullA: { name: 'Full A', focus: 'Cuerpo completo' },
+    fullB: { name: 'Full B', focus: 'Cuerpo completo' },
+    fullC: { name: 'Full C', focus: 'Cuerpo completo' },
   },
 
   exercises: {

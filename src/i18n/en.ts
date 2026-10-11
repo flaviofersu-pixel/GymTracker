@@ -1,5 +1,5 @@
 import type { ExerciseId, PresetId } from '../data/plan';
-import type { RoutineId } from '../types';
+import type { Activity, Goal, RoutineId, Sex } from '../types';
 
 const plural = (n: number, one: string, many: string) => `${String(n)} ${n === 1 ? one : many}`;
 
@@ -8,8 +8,8 @@ export const en = {
   languageName: 'English',
 
   app: {
-    tagline: (start: number, goal: number, height: number) =>
-      `${String(start)} → ${String(goal)} kg · ${String(height)} cm`,
+    name: 'Cuaderno',
+    tagline: (goal: string, days: number) => `${goal} · ${String(days)} days a week`,
     tabs: { today: 'Today', weight: 'Weight', training: 'Training', progress: 'Progress' },
     language: 'Language',
   },
@@ -24,8 +24,7 @@ export const en = {
     proteinEaten: 'Protein eaten',
     mealsTitle: "Today's meals",
     mealCount: (n: number) => plural(n, 'meal', 'meals'),
-    empty:
-      'Nothing logged yet today. Describe a meal, snap a photo or tap one of your plan’s quick adds.',
+    empty: 'Nothing logged yet today. Describe a meal, snap a photo or tap one of the quick adds.',
     delete: (name: string) => `Delete ${name}`,
     proteinShort: 'g protein',
   },
@@ -40,7 +39,7 @@ export const en = {
     estimating: 'Estimating…',
     manual: 'Enter manually',
     needInput: 'Describe the meal or add a photo',
-    quickAdds: 'Quick adds from your plan',
+    quickAdds: 'Quick adds',
     added: (kcal: number) => `Added: ${String(kcal)} kcal`,
     saved: 'Meal saved',
   },
@@ -80,17 +79,21 @@ export const en = {
     toGo: 'To go',
     paceUnknown: 'Weigh in 3-4 mornings a week. After two weeks you’ll see whether you’re on pace.',
     pace: {
-      slow: {
-        label: 'Slow',
-        text: 'Below +0.2 kg a week. If it happens again next week, add about 200 kcal (a glass of milk and a spoon of peanut butter).',
-      },
-      'on-track': { label: 'On track', text: 'A good pace for gaining muscle with little fat.' },
-      fast: {
-        label: 'Fast',
-        text: 'More than +0.5 kg a week. Cut 150-200 kcal and watch your waist.',
-      },
+      below: (range: string) =>
+        `Outside your target of ${range} kg a week. If it happens again next week, add about 150-200 kcal.`,
+      'on-track': (range: string) => `Inside your target of ${range} kg a week. Keep going.`,
+      above: (range: string) =>
+        `Outside your target of ${range} kg a week. If it happens again next week, cut about 150-200 kcal.`,
     },
-    chartCaption: 'Dots: daily weight. Line: 7-day average. Plan target: +0.2 to +0.3 kg a week.',
+    /** What being under or over the range means for each goal. */
+    paceLabel: {
+      gain: { below: 'Too slow', 'on-track': 'On track', above: 'Too fast' },
+      lose: { below: 'Too fast', 'on-track': 'On track', above: 'Too slow' },
+      maintain: { below: 'Dropping', 'on-track': 'Steady', above: 'Rising' },
+    } satisfies Record<Goal, Record<'below' | 'on-track' | 'above', string>>,
+    range: (min: string, max: string) => `${min} to ${max}`,
+    chartCaption: (range: string) =>
+      `Dots: daily weight. Line: 7-day average. Your target: ${range} kg a week.`,
     chartLabel: (weeks: number) => `Weight over the last ${String(weeks)} weeks`,
     chartEmpty: 'No data yet',
     log: 'Entries',
@@ -136,14 +139,14 @@ export const en = {
   progress: {
     weekTitle: 'Weekly check-in',
     checks: {
-      weight: 'Average weight went up 0.2-0.3 kg',
+      weight: (range: string) => `Weekly change of ${range} kg`,
       weightNoData: 'Need weigh-ins from two weeks',
       weightDetail: (delta: string) => `Change: ${delta} kg`,
-      sessions: 'Trained 3-4 times',
+      sessions: (n: number) => `Trained ${plural(n, 'time', 'times')}`,
       sessionsDetail: (n: number) => `${String(n)} this week`,
       improved: 'Added weight or reps on at least one exercise',
       improvedNone: 'No exercise improved yet',
-      protein: (min: number) => `${String(min)} g of protein or more on most days`,
+      protein: (target: number) => `About ${String(target)} g of protein on most days`,
       proteinNoData: 'No meals logged',
       proteinDetail: (hit: number, logged: number) =>
         `${String(hit)} of ${String(logged)} logged days`,
@@ -168,17 +171,54 @@ export const en = {
     pastEmpty: 'Your reviews are kept here so you can compare week to week.',
   },
 
-  settings: {
-    title: 'Settings',
+  profile: {
+    welcome: 'Welcome',
+    intro:
+      'Tell us a bit about you. We’ll work out your daily calories and protein and pick a training split that fits the days you can train. You can change all of it later.',
+    title: 'Your profile',
+    sex: 'Sex',
+    sexes: { male: 'Male', female: 'Female' } satisfies Record<Sex, string>,
+    age: 'Age',
+    height: 'Height (cm)',
+    weight: 'Weight (kg)',
+    goal: 'Goal',
+    goals: {
+      gain: 'Gain muscle',
+      maintain: 'Maintain',
+      lose: 'Lose fat',
+    } satisfies Record<Goal, string>,
+    goalWeight: 'Goal weight (kg)',
+    activity: 'Activity outside the gym',
+    activities: {
+      low: 'Low',
+      moderate: 'Moderate',
+      high: 'High',
+    } satisfies Record<Activity, string>,
+    activityHint: {
+      low: 'Desk job, under 6,000 steps a day',
+      moderate: 'On your feet some of the day, 6,000-10,000 steps',
+      high: 'Physical job or over 10,000 steps a day',
+    } satisfies Record<Activity, string>,
+    days: 'Days you can train per week',
+    split: (routines: string) => `Your rotation: ${routines}`,
+    targets: 'Daily targets',
     kcal: 'Calories per day',
     protein: 'Protein per day (g)',
-    goal: 'Goal weight (kg)',
+    targetsHint:
+      'Recommended from your profile. Edit them if you already know your numbers; the weekly weight trend will tell you whether to adjust.',
+    start: 'Start',
+    save: 'Save profile',
+    saved: 'Profile saved',
+    invalid: 'Check the numbers',
+  },
+
+  settings: {
+    title: 'AI',
     apiKey: 'Anthropic API key',
     apiKeyHelp:
       'The AI features use your own key. It’s stored only on this device and sent only to the Anthropic API. Create one at',
-    save: 'Save settings',
-    saved: 'Settings saved',
-    invalid: 'Check the numbers',
+    save: 'Save key',
+    saved: 'Key saved',
   },
 
   backup: {
@@ -192,11 +232,11 @@ export const en = {
     cancel: 'Cancel',
     restored: (weights: number, sessions: number) =>
       `Backup restored: ${plural(weights, 'weigh-in', 'weigh-ins')}, ${plural(sessions, 'session', 'sessions')}`,
-    invalid: 'That file isn’t a valid Cuaderno 70 backup',
+    invalid: 'That file isn’t a valid Cuaderno backup',
   },
 
   errors: {
-    missingKey: 'Add your Anthropic API key in Progress → Settings.',
+    missingKey: 'Add your Anthropic API key in Progress → AI.',
     invalidKey: 'The API key isn’t valid.',
     permission: 'Your key can’t use this model.',
     rateLimited: 'Too many requests, or no credit left. Try again later.',
@@ -210,14 +250,13 @@ export const en = {
   routines: {
     push: { name: 'Push', focus: 'Chest, shoulders and triceps' },
     pull: { name: 'Pull', focus: 'Back and biceps' },
-    legs: { name: 'Legs', focus: 'Your only leg day: don’t skip it' },
-    arms: {
-      name: 'Arms & shoulders',
-      focus: 'Arms, shoulders and abs. Leave a day between Push and this',
-    },
-    fullA: { name: 'Full A', focus: 'Full body, 3-day week' },
-    fullB: { name: 'Full B', focus: 'Full body, 3-day week' },
-    fullC: { name: 'Full C', focus: 'Full body, 3-day week' },
+    legs: { name: 'Legs', focus: 'Quads, hamstrings, glutes and calves' },
+    arms: { name: 'Arms & shoulders', focus: 'Arms, shoulders and abs' },
+    upper: { name: 'Upper', focus: 'Chest, back, shoulders and arms' },
+    lower: { name: 'Lower', focus: 'Legs and core' },
+    fullA: { name: 'Full A', focus: 'Full body' },
+    fullB: { name: 'Full B', focus: 'Full body' },
+    fullC: { name: 'Full C', focus: 'Full body' },
   } satisfies Record<RoutineId, { name: string; focus: string }>,
 
   exercises: {

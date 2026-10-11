@@ -25,13 +25,20 @@ describe('weeklyChange', () => {
 });
 
 describe('classifyPace', () => {
+  const gaining = { min: 0.15, max: 0.3 };
+
   it.each([
     [null, 'unknown'],
-    [0, 'slow'],
+    [0, 'below'],
+    [0.1, 'on-track'],
     [0.25, 'on-track'],
-    [0.7, 'fast'],
-  ] as const)('classifies %s kg/week as %s', (delta, pace) => {
-    expect(classifyPace(delta)).toBe(pace);
+    [0.7, 'above'],
+  ] as const)('classifies %s kg/week against a gain target as %s', (delta, pace) => {
+    expect(classifyPace(delta, gaining)).toBe(pace);
+  });
+
+  it('flags a cut that stalls', () => {
+    expect(classifyPace(0, { min: -0.8, max: -0.4 })).toBe('above');
   });
 });
 

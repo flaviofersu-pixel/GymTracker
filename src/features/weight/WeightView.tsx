@@ -1,15 +1,16 @@
 import { useId, useState } from 'react';
 import { formatNumber, parseDecimal } from '../../components/format';
 import { useToast } from '../../components/toast-context';
-import { db } from '../../db/database';
+import { db, saveWeight } from '../../db/database';
 import { addDays, formatDay, toDateKey } from '../../domain/dates';
+import { targetPace } from '../../domain/targets';
 import { classifyPace, trend, weeklyChange } from '../../domain/weight';
 import { useSettings, useWeights } from '../../hooks/useData';
 import { useI18n } from '../../i18n/i18n';
 import { WeightChart } from './WeightChart';
 
 const CHART_DAYS = 56;
-const PACE_TONE = { slow: 'warn', 'on-track': 'ok', fast: 'bad' } as const;
+const PACE_TONE = { below: 'warn', 'on-track': 'ok', above: 'warn' } as const;
 
 export function WeightView() {
   const { t } = useI18n();
@@ -24,7 +25,10 @@ export function WeightView() {
   const today = toDateKey();
   const chartFrom = addDays(today, -(CHART_DAYS - 1));
   const change = weeklyChange(weights, today);
-  const pace = classifyPace(change.delta);
+  const paceRange = targetPace(settings);
+  const pace = classifyPace(change.delta, paceRange);
+  const signed = (n: number) => `${n > 0 ? '+' : ''}${fmt(n, 2)}`;
+  const rangeText = t.weight.range(signed(paceRange.min), signed(paceRange.max));
 
   const save = async () => {
     const value = parseDecimal(kg);
@@ -32,9 +36,7 @@ export function WeightView() {
       toast(t.weight.invalid);
       return;
     }
-    // Keep a waist measurement already logged today if this entry leaves the field blank.
-    const waistCm = parseDecimal(waist) ?? (await db.weights.get(today))?.waistCm;
-    await db.weights.put({ date: today, kg: value, ...(waistCm !== undefined && { waistCm }) });
+    await saveWeight(value, parseDecimal(waist) ?? undefined);
     setKg('');
     setWaist('');
     toast(t.weight.saved);
@@ -50,7 +52,7 @@ export function WeightView() {
             <input
               id={`${id}-kg`}
               inputMode="decimal"
-              placeholder={fmt(62.4)}
+              placeholder={fmt(settings.startWeightKg)}
               value={kg}
               onChange={(e) => {
                 setKg(e.target.value);
@@ -62,7 +64,7 @@ export function WeightView() {
             <input
               id={`${id}-waist`}
               inputMode="decimal"
-              placeholder="74"
+              placeholder="80"
               value={waist}
               onChange={(e) => {
                 setWaist(e.target.value);
@@ -83,16 +85,14 @@ export function WeightView() {
           />
           <Stat
             label={t.weight.vsLastWeek}
-            value={
-              change.delta === null ? '–' : `${change.delta >= 0 ? '+' : ''}${fmt(change.delta, 2)}`
-            }
+            value={change.delta === null ? '–' : signed(change.delta)}
           />
           <Stat
             label={t.weight.toGo}
             value={
-              change.current === null
+              change.current === null || settings.goal === 'maintain'
                 ? '–'
-                : `${fmt(Math.max(0, settings.goalWeightKg - change.current))} kg`
+                : `${fmt(Math.abs(settings.goalWeightKg - change.current))} kg`
             }
           />
         </div>
@@ -101,13 +101,15 @@ export function WeightView() {
             <span className="muted">{t.weight.paceUnknown}</span>
           ) : (
             <>
-              <span className={`pill ${PACE_TONE[pace]}`}>{t.weight.pace[pace].label}</span>{' '}
-              {t.weight.pace[pace].text}
+              <span className={`pill ${PACE_TONE[pace]}`}>
+                {t.weight.paceLabel[settings.goal][pace]}
+              </span>{' '}
+              {t.weight.pace[pace](rangeText)}
             </>
           )}
         </p>
         <WeightChart points={trend(weights, chartFrom)} from={chartFrom} days={CHART_DAYS} />
-        <p className="small muted">{t.weight.chartCaption}</p>
+        <p className="small muted">{t.weight.chartCaption(rangeText)}</p>
       </section>
 
       <section className="panel" aria-labelledby={`${id}-log`}>

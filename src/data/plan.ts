@@ -1,4 +1,5 @@
-import type { RoutineId, Settings } from '../types';
+import { recommendedTargets } from '../domain/targets';
+import type { Profile, RoutineId, Settings, TrainingDays } from '../types';
 
 export type ExerciseId =
   | 'benchPress'
@@ -124,6 +125,29 @@ export const ROUTINES: Record<RoutineId, Routine> = {
       ex('plank', 2, '45 s'),
     ],
   },
+  upper: {
+    id: 'upper',
+    exercises: [
+      ex('benchPress', 3, '6-8'),
+      ex('barbellRow', 3, '8-10'),
+      ex('overheadPress', 3, '8-10'),
+      ex('pullUp', 3, '6-10'),
+      ex('lateralRaise', 3, '12-15'),
+      ex('barbellCurl', 2, '10-12'),
+      ex('tricepsPushdown', 2, '10-12'),
+    ],
+  },
+  lower: {
+    id: 'lower',
+    exercises: [
+      ex('squat', 4, '6-8'),
+      ex('romanianDeadlift', 3, '8-10'),
+      ex('lunge', 2, '10-10'),
+      ex('legCurl', 3, '10-12'),
+      ex('calfRaise', 4, '12-15'),
+      ex('hangingLegRaise', 3, '10-15'),
+    ],
+  },
   fullA: {
     id: 'fullA',
     exercises: [
@@ -161,8 +185,21 @@ export const ROUTINES: Record<RoutineId, Routine> = {
 
 export const ROUTINE_IDS = Object.keys(ROUTINES) as RoutineId[];
 
-/** The four-day split, in the order it should be trained. */
-export const ROTATION: readonly [RoutineId, ...RoutineId[]] = ['push', 'pull', 'legs', 'arms'];
+type Split = readonly [RoutineId, ...RoutineId[]];
+
+/**
+ * The routines to rotate through for each number of training days per week, in order.
+ * Every split hits legs at least twice a week.
+ */
+export const SPLITS: Record<TrainingDays, Split> = {
+  2: ['fullA', 'fullB'],
+  3: ['fullA', 'fullB', 'fullC'],
+  4: ['upper', 'lower'],
+  5: ['push', 'pull', 'legs', 'upper', 'lower'],
+  6: ['push', 'pull', 'legs', 'arms', 'upper', 'lower'],
+};
+
+export const TRAINING_DAY_OPTIONS = Object.keys(SPLITS).map(Number) as TrainingDays[];
 
 export type PresetId =
   | 'breakfastShake'
@@ -191,38 +228,20 @@ export const MEAL_PRESETS: readonly MealPreset[] = [
   { id: 'peanuts', kcal: 170, proteinG: 8 },
 ];
 
-/** Foods the plan keeps at home; suggestions are built from these. */
-export const PANTRY = [
-  'eggs',
-  'whole milk',
-  'Greek yogurt',
-  'quark or cottage cheese',
-  'canned tuna and sardines',
-  'chicken thighs',
-  'ground beef',
-  'jarred legumes',
-  'oats',
-  'microwave rice',
-  'pasta',
-  'bread',
-  'potatoes',
-  'bananas',
-  'olive oil',
-  'peanut butter',
-  'nuts',
-  'frozen vegetables',
-  'whey protein (optional)',
-];
-
-export const DEFAULT_SETTINGS: Settings = {
-  kcalTarget: 2750,
-  proteinTarget: 130,
-  startWeightKg: 62,
+const DEFAULT_PROFILE: Profile = {
+  sex: 'male',
+  age: 30,
+  heightCm: 175,
+  startWeightKg: 70,
+  goal: 'maintain',
   goalWeightKg: 70,
-  heightCm: 178,
-  apiKey: '',
+  activity: 'moderate',
+  trainingDays: 3,
 };
 
-/** Weekly weight gain the plan aims for, in kg. */
-export const TARGET_WEEKLY_GAIN = { min: 0.2, max: 0.3 } as const;
-export const MIN_PROTEIN_DAY_G = 120;
+export const DEFAULT_SETTINGS: Settings = {
+  ...DEFAULT_PROFILE,
+  ...recommendedTargets(DEFAULT_PROFILE),
+  onboarded: false,
+  apiKey: '',
+};

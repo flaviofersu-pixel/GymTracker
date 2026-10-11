@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { parseDecimal } from '../../components/format';
 import { useToast } from '../../components/toast-context';
-import { ROTATION, ROUTINE_IDS, ROUTINES } from '../../data/plan';
+import { ROUTINES, SPLITS } from '../../data/plan';
 import { db, logWorkout } from '../../db/database';
 import { formatDay, toDateKey } from '../../domain/dates';
 import { heaviest, lastPerformance, nextRoutineInRotation } from '../../domain/progression';
-import { useWorkouts } from '../../hooks/useData';
+import { useSettings, useWorkouts } from '../../hooks/useData';
 import { useI18n } from '../../i18n/i18n';
 import type { ExerciseLog, RoutineId, Workout } from '../../types';
 import { ExerciseCard } from './ExerciseCard';
@@ -15,10 +15,12 @@ export function TrainingView() {
   const { t } = useI18n();
   const toast = useToast();
   const workouts = useWorkouts();
+  const split = SPLITS[useSettings().trainingDays];
   const today = toDateKey();
-  const suggested = nextRoutineInRotation(workouts, ROTATION);
+  const suggested = nextRoutineInRotation(workouts, split);
   const [picked, setPicked] = useState<RoutineId | null>(null);
-  const routineId = picked ?? suggested;
+  // A pick from a previous split no longer applies once the training days change.
+  const routineId = picked && split.includes(picked) ? picked : suggested;
   const routine = ROUTINES[routineId];
   const copy = t.routines[routineId];
   const { draft, update, clear } = useWorkoutDraft(routineId, today);
@@ -44,7 +46,7 @@ export function TrainingView() {
           <span className="small muted">{t.training.nextUp(t.routines[suggested].name)}</span>
         </div>
         <div className="segmented" role="group" aria-label={t.training.pickRoutine}>
-          {ROUTINE_IDS.map((id) => (
+          {split.map((id) => (
             <button
               key={id}
               type="button"

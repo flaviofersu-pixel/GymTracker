@@ -1,12 +1,13 @@
 import { formatNumber } from '../../components/format';
-import { MIN_PROTEIN_DAY_G } from '../../data/plan';
 import { toDateKey } from '../../domain/dates';
+import { targetPace } from '../../domain/targets';
 import { weeklyReview, type CheckState } from '../../domain/weekly';
-import { useMeals, useWeights, useWorkouts } from '../../hooks/useData';
+import { useMeals, useSettings, useWeights, useWorkouts } from '../../hooks/useData';
 import { useI18n } from '../../i18n/i18n';
 import { AnalysisPanel } from './AnalysisPanel';
 import { BackupPanel } from './BackupPanel';
-import { SettingsPanel } from './SettingsPanel';
+import { ProfilePanel } from './ProfilePanel';
+import { ApiKeyPanel } from './ApiKeyPanel';
 
 const MARK: Record<CheckState, { symbol: string; tone: string }> = {
   done: { symbol: '✓', tone: 'ok' },
@@ -34,8 +35,11 @@ export function ProgressView() {
   const weights = useWeights();
   const workouts = useWorkouts();
   const meals = useMeals();
-  const review = weeklyReview(toDateKey(), { weights, workouts, meals });
+  const settings = useSettings();
+  const review = weeklyReview(toDateKey(), settings, { weights, workouts, meals });
   const { delta } = review.weight;
+  const signed = (n: number) => `${n > 0 ? '+' : ''}${formatNumber(n, t.locale, 2)}`;
+  const pace = targetPace(settings);
 
   return (
     <>
@@ -44,16 +48,12 @@ export function ProgressView() {
         <ul className="checklist">
           <Check
             state={review.weight.state}
-            label={c.weight}
-            detail={
-              delta === null
-                ? c.weightNoData
-                : c.weightDetail(`${delta >= 0 ? '+' : ''}${formatNumber(delta, t.locale, 2)}`)
-            }
+            label={c.weight(t.weight.range(signed(pace.min), signed(pace.max)))}
+            detail={delta === null ? c.weightNoData : c.weightDetail(signed(delta))}
           />
           <Check
             state={review.sessions.state}
-            label={c.sessions}
+            label={c.sessions(settings.trainingDays)}
             detail={c.sessionsDetail(review.sessions.count)}
           />
           <Check
@@ -67,7 +67,7 @@ export function ProgressView() {
           />
           <Check
             state={review.protein.state}
-            label={c.protein(MIN_PROTEIN_DAY_G)}
+            label={c.protein(settings.proteinTarget)}
             detail={
               review.protein.loggedDays === 0
                 ? c.proteinNoData
@@ -78,7 +78,8 @@ export function ProgressView() {
         </ul>
       </section>
       <AnalysisPanel weights={weights} workouts={workouts} meals={meals} />
-      <SettingsPanel />
+      <ProfilePanel />
+      <ApiKeyPanel />
       <BackupPanel />
     </>
   );

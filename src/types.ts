@@ -37,7 +37,8 @@ export interface ExerciseLog {
   sets: SetLog[];
 }
 
-export type RoutineId = 'push' | 'pull' | 'legs' | 'arms' | 'fullA' | 'fullB' | 'fullC';
+export type RoutineId =
+  'push' | 'pull' | 'legs' | 'arms' | 'upper' | 'lower' | 'fullA' | 'fullB' | 'fullC';
 
 export interface Workout {
   id?: number;
@@ -56,12 +57,29 @@ export interface Analysis {
 
 export type Locale = 'en' | 'es';
 
-export interface Settings {
+export type Sex = 'male' | 'female';
+export type Goal = 'gain' | 'maintain' | 'lose';
+/** How active the person is outside the gym. */
+export type Activity = 'low' | 'moderate' | 'high';
+export type TrainingDays = 2 | 3 | 4 | 5 | 6;
+
+export interface Profile {
+  sex: Sex;
+  age: number;
+  heightCm: number;
+  /** Weight when the profile was last set up. */
+  startWeightKg: number;
+  goal: Goal;
+  goalWeightKg: number;
+  activity: Activity;
+  trainingDays: TrainingDays;
+}
+
+export interface Settings extends Profile {
+  /** False until the person completes the first-run setup. */
+  onboarded: boolean;
   kcalTarget: number;
   proteinTarget: number;
-  startWeightKg: number;
-  goalWeightKg: number;
-  heightCm: number;
   /** Anthropic API key. Stored only in this browser's IndexedDB. */
   apiKey: string;
 }

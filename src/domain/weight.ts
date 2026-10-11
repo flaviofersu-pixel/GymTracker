@@ -1,6 +1,6 @@
-import { TARGET_WEEKLY_GAIN } from '../data/plan';
 import type { DateKey, WeightEntry } from '../types';
 import { addDays } from './dates';
+import type { PaceRange } from './targets';
 
 export function averageBetween(
   entries: readonly WeightEntry[],
@@ -27,17 +27,16 @@ export function weeklyChange(entries: readonly WeightEntry[], today: DateKey): W
   return { current, previous, delta };
 }
 
-export type Pace = 'unknown' | 'slow' | 'on-track' | 'fast';
+export type Pace = 'unknown' | 'below' | 'on-track' | 'above';
 
-/**
- * Classifies a weekly change against the plan's +0.2 to +0.3 kg target.
- * The bounds are a little wider than the target so normal day-to-day noise
- * does not flip the status every week.
- */
-export function classifyPace(delta: number | null): Pace {
+/** Day-to-day noise allowed outside the target range before the pace is flagged. */
+const PACE_TOLERANCE_KG = 0.1;
+
+/** Classifies a weekly change against the target range for the person's goal. */
+export function classifyPace(delta: number | null, range: PaceRange): Pace {
   if (delta === null) return 'unknown';
-  if (delta < TARGET_WEEKLY_GAIN.min - 0.1) return 'slow';
-  if (delta > 0.5) return 'fast';
+  if (delta < range.min - PACE_TOLERANCE_KG) return 'below';
+  if (delta > range.max + PACE_TOLERANCE_KG) return 'above';
   return 'on-track';
 }
 

@@ -13,8 +13,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Cuaderno 70',
-        short_name: 'Cuaderno 70',
+        name: 'Cuaderno',
+        short_name: 'Cuaderno',
         description: 'Weight, training and meal tracker with AI meal estimates and weekly reviews.',
         theme_color: '#2448c9',
         background_color: '#f3f4f1',

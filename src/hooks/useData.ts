@@ -7,6 +7,9 @@ const EMPTY: never[] = [];
 
 export const useSettings = (): Settings => useLiveQuery(() => loadSettings(), [], DEFAULT_SETTINGS);
 
+/** Settings as stored, or undefined while they are still loading. */
+export const useStoredSettings = (): Settings | undefined => useLiveQuery(() => loadSettings(), []);
+
 export const useWeights = (): WeightEntry[] =>
   useLiveQuery(() => db.weights.orderBy('date').toArray(), [], EMPTY);
 

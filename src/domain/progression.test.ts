@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PlannedExercise } from '../data/plan';
+import { ROUTINES, SPLITS, TRAINING_DAY_OPTIONS, type PlannedExercise } from '../data/plan';
 import type { Workout } from '../types';
 import {
   improvedExercises,
@@ -157,5 +157,18 @@ describe('nextRoutineInRotation', () => {
       workout('2026-10-03', { routine: 'fullA' }),
     ];
     expect(nextRoutineInRotation(history, rotation)).toBe('legs');
+  });
+});
+
+describe('training splits', () => {
+  it('has a rotation for every training-day option and only known routines', () => {
+    for (const days of TRAINING_DAY_OPTIONS) {
+      expect(SPLITS[days].every((id) => id in ROUTINES)).toBe(true);
+    }
+  });
+
+  it('alternates upper and lower on four days', () => {
+    const done = [{ routine: 'upper', date: '2026-10-13', loggedAt: 1 }];
+    expect(nextRoutineInRotation(done, SPLITS[4])).toBe('lower');
   });
 });

@@ -4,7 +4,8 @@ import { ProgressView } from './features/progress/ProgressView';
 import { TodayView } from './features/today/TodayView';
 import { TrainingView } from './features/training/TrainingView';
 import { WeightView } from './features/weight/WeightView';
-import { useSettings } from './hooks/useData';
+import { Onboarding } from './features/profile/Onboarding';
+import { useStoredSettings } from './hooks/useData';
 import { LOCALES, MESSAGES, useI18n } from './i18n/i18n';
 
 const TABS = {
@@ -45,10 +46,13 @@ function useHashTab(): [Tab, (tab: Tab) => void] {
 }
 
 export function App() {
-  const { t, locale, setLocale } = useI18n();
-  const settings = useSettings();
+  const { t } = useI18n();
+  const settings = useStoredSettings();
   const [tab, navigate] = useHashTab();
   const View = TABS[tab];
+
+  // Render nothing for the moment it takes to read settings, so onboarding never flashes.
+  if (!settings) return null;
 
   const today = new Date().toLocaleDateString(t.locale, {
     weekday: 'long',
@@ -62,47 +66,63 @@ export function App() {
         <header className="app__header">
           <div>
             <div className="eyebrow">{today}</div>
-            <h1>Cuaderno 70</h1>
+            <h1>{t.app.name}</h1>
           </div>
           <div className="app__meta">
-            <span className="small muted">
-              {t.app.tagline(settings.startWeightKg, settings.goalWeightKg, settings.heightCm)}
-            </span>
-            <div className="lang" role="group" aria-label={t.app.language}>
-              {LOCALES.map((code) => (
-                <button
-                  key={code}
-                  type="button"
-                  lang={code}
-                  aria-pressed={code === locale}
-                  aria-label={MESSAGES[code].languageName}
-                  onClick={() => {
-                    setLocale(code);
-                  }}
-                >
-                  {code.toUpperCase()}
-                </button>
-              ))}
-            </div>
+            {settings.onboarded && (
+              <span className="small muted">
+                {t.app.tagline(t.profile.goals[settings.goal], settings.trainingDays)}
+              </span>
+            )}
+            <LanguageToggle />
           </div>
         </header>
-        <View />
+        {settings.onboarded ? <View /> : <Onboarding settings={settings} />}
       </main>
 
-      <nav className="tabs" aria-label="Cuaderno 70">
-        {TAB_IDS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            aria-current={id === tab ? 'page' : undefined}
-            onClick={() => {
-              navigate(id);
-            }}
-          >
-            {t.app.tabs[id]}
-          </button>
-        ))}
-      </nav>
+      {settings.onboarded && <TabBar tab={tab} navigate={navigate} />}
     </ToastProvider>
+  );
+}
+
+function LanguageToggle() {
+  const { t, locale, setLocale } = useI18n();
+  return (
+    <div className="lang" role="group" aria-label={t.app.language}>
+      {LOCALES.map((code) => (
+        <button
+          key={code}
+          type="button"
+          lang={code}
+          aria-pressed={code === locale}
+          aria-label={MESSAGES[code].languageName}
+          onClick={() => {
+            setLocale(code);
+          }}
+        >
+          {code.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function TabBar({ tab, navigate }: { tab: Tab; navigate: (tab: Tab) => void }) {
+  const { t } = useI18n();
+  return (
+    <nav className="tabs" aria-label={t.app.name}>
+      {TAB_IDS.map((id) => (
+        <button
+          key={id}
+          type="button"
+          aria-current={id === tab ? 'page' : undefined}
+          onClick={() => {
+            navigate(id);
+          }}
+        >
+          {t.app.tabs[id]}
+        </button>
+      ))}
+    </nav>
   );
 }

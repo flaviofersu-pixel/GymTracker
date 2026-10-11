@@ -1,21 +1,40 @@
-import { PANTRY } from '../data/plan';
+import { SPLITS } from '../data/plan';
 import { addDays } from '../domain/dates';
 import { dayTotals } from '../domain/nutrition';
+import { targetPace } from '../domain/targets';
 import { averageBetween } from '../domain/weight';
 import { en } from '../i18n/en';
-import type { DateKey, Locale, Meal, Settings, WeightEntry, Workout } from '../types';
-
-type Profile = Pick<Settings, 'heightCm' | 'startWeightKg' | 'goalWeightKg'>;
+import type {
+  DateKey,
+  Goal,
+  Locale,
+  Meal,
+  Profile,
+  Settings,
+  WeightEntry,
+  Workout,
+} from '../types';
 
 const LANGUAGE: Record<Locale, string> = {
   en: 'English',
-  es: 'Spanish (Spain), addressing him as "tú"',
+  es: 'Spanish, addressing the person as "tú"',
 };
 
+const GOAL: Record<Goal, string> = {
+  gain: 'gaining muscle with a small calorie surplus',
+  maintain: 'keeping their weight while getting stronger',
+  lose: 'losing fat while keeping muscle',
+};
+
+const fmtPace = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(2)}`;
+
 const athlete = (p: Profile): string =>
-  `He is ${String(p.heightCm)} cm tall, started at ${String(p.startWeightKg)} kg and is lean bulking ` +
-  `towards ~${String(p.goalWeightKg)} kg. He struggles to eat large amounts and does not meal prep: ` +
-  'every meal is made on the spot in 15 minutes or less.';
+  [
+    `The person is a ${String(p.age)}-year-old ${p.sex}, ${String(p.heightCm)} cm tall, who weighed`,
+    `${String(p.startWeightKg)} kg at setup. Their goal is ${GOAL[p.goal]}`,
+    p.goal === 'maintain' ? '.' : `, towards ${String(p.goalWeightKg)} kg.`,
+    `They train ${String(p.trainingDays)} days a week.`,
+  ].join(' ');
 
 export function mealEstimatePrompt(
   profile: Profile,
@@ -26,8 +45,8 @@ export function mealEstimatePrompt(
   return [
     `You are a nutritionist estimating a meal without a kitchen scale. ${athlete(profile)}`,
     hasPhoto ? 'The attached photo shows the meal.' : '',
-    description ? `He describes it as: "${description}".` : '',
-    'If he gives no quantities, assume typical home portions in Spain. Treat his description as the ' +
+    description ? `They describe it as: "${description}".` : '',
+    'If they give no quantities, assume typical home portions. Treat their description as the ' +
       'truth about ingredients, for example oil that cannot be seen in the photo.',
     'Give amounts in household measures ("1 plate", "~150 g", "1 tablespoon") and use "note" for one ' +
       'sentence on what would change the estimate most.',
@@ -50,12 +69,12 @@ export function suggestionsPrompt(input: {
     'nothing yet';
   return [
     athlete(input.profile),
-    `It is ${String(input.hour)}:00. So far today he has eaten: ${eaten}.`,
-    `He still needs ${String(input.kcalLeft)} kcal and ${String(input.proteinLeft)} g of protein.`,
-    `Foods he has at home: ${PANTRY.join(', ')}.`,
+    `It is ${String(input.hour)}:00. So far today they have eaten: ${eaten}.`,
+    `They still need ${String(input.kcalLeft)} kcal and ${String(input.proteinLeft)} g of protein.`,
     'Suggest 3 different options that close the gap within ±100 kcal (one may be split into two ' +
-      'snacks). Use household measures (glasses, spoons, cans, units), never grams on a scale. If many ' +
-      'calories are missing, favour dense, easy-to-eat foods.',
+      'snacks), using common supermarket foods that take 15 minutes or less to prepare. Use household ' +
+      'measures (glasses, spoons, cans, units), never grams on a scale. If many calories are missing, ' +
+      'favour dense, easy-to-eat foods.',
     `Write every text field in ${LANGUAGE[input.locale]}.`,
   ].join('\n');
 }
@@ -115,12 +134,14 @@ export function analysisPrompt(
   digest: string,
   locale: Locale,
 ): string {
+  const pace = targetPace(settings);
+  const split = SPLITS[settings.trainingDays].map((id) => en.routines[id].name).join(' / ');
   return [
-    `You are his strength coach and nutritionist. ${athlete(settings)}`,
-    'He follows a Push / Pull / Legs / Arms-Shoulders-Abs split with double progression. Plan rules: ' +
-      'gain 0.2-0.3 kg per week; if weight does not rise for 2 weeks, add 200 kcal; if it rises more ' +
-      'than 0.5 kg per week or the waist grows more than 1 cm per month, cut 150-200 kcal; protein ' +
-      '120-140 g per day.',
+    `You are their strength coach and nutritionist. ${athlete(settings)}`,
+    `They follow a ${split} rotation with double progression. Plan rules: weekly change of the ` +
+      `7-day average weight between ${fmtPace(pace.min)} and ${fmtPace(pace.max)} kg; if it stays ` +
+      'below that range for 2 weeks, add 150-200 kcal; if it stays above, cut 150-200 kcal; ' +
+      `protein around ${String(settings.proteinTarget)} g per day.`,
     `Today is ${today}.`,
     '',
     'Data:',

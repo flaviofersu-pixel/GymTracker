@@ -17,7 +17,7 @@ export function BackupPanel() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `cuaderno-70-${toDateKey()}.json`;
+    link.download = `cuaderno-${toDateKey()}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };

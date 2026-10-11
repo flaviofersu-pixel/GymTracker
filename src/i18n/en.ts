@@ -216,7 +216,7 @@ export const en = {
     title: 'AI',
     apiKey: 'Anthropic API key',
     apiKeyHelp:
-      'The AI features use your own key. It’s stored only on this device and sent only to the Anthropic API. Create one at',
+      'With a key the AI answers inside the app. Without one, the app prepares each question for you to paste into your own Claude app, which works with Claude Pro. The key is stored only on this device and sent only to the Anthropic API. Create one at',
     save: 'Save key',
     saved: 'Key saved',
   },
@@ -235,6 +235,17 @@ export const en = {
     invalid: 'That file isn’t a valid Cuaderno backup',
   },
 
+  manual: {
+    intro: 'No API key, so you can use your own Claude app instead (it works with Claude Pro).',
+    copy: '1. Copy the question',
+    copied: 'Question copied',
+    open: 'Open Claude',
+    photo: 'Attach your photo in Claude too.',
+    paste: '2. Paste Claude’s answer here',
+    use: 'Use answer',
+    cancel: 'Cancel',
+  },
+
   errors: {
     missingKey: 'Add your Anthropic API key in Progress → AI.',
     invalidKey: 'The API key isn’t valid.',
@@ -244,6 +255,8 @@ export const en = {
     service: 'The AI service failed. Try again.',
     refused: 'The AI couldn’t handle that. Try describing it differently.',
     photo: 'Couldn’t read that photo. Try another one.',
+    badReply:
+      'Couldn’t read that answer. Paste Claude’s whole reply, including the part between { and }.',
     unknown: 'Something went wrong talking to the AI. Try again.',
   },
 

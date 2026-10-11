@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { ManualAi } from '../../components/ManualAi';
 import { Markdown } from '../../components/Markdown';
 import { logAnalysis } from '../../db/database';
 import { daysBetween, formatDay, toDateKey } from '../../domain/dates';
@@ -24,20 +25,26 @@ export function AnalysisPanel({ weights, workouts, meals }: AnalysisPanelProps) 
   const [error, setError] = useState<AiErrorCode | null>(null);
   const [running, setRunning] = useState(false);
   const controller = useRef<AbortController | null>(null);
+  /** The question to run through the person's own Claude app when there is no API key. */
+  const [manualPrompt, setManualPrompt] = useState<string | null>(null);
 
   const latest = analyses[0];
   const daysSince = latest ? daysBetween(latest.date, toDateKey()) : null;
 
   const run = async () => {
     const today = toDateKey();
+    const digest = progressDigest(today, settings, { weights, meals, workouts });
+    const prompt = analysisPrompt(today, settings, digest, locale);
+    setError(null);
+    setText('');
+    if (!settings.apiKey) {
+      setManualPrompt(prompt);
+      return;
+    }
     const abort = new AbortController();
     controller.current = abort;
     setRunning(true);
-    setError(null);
-    setText('');
     try {
-      const digest = progressDigest(today, settings, { weights, meals, workouts });
-      const prompt = analysisPrompt(today, settings, digest, locale);
       const result = await analyzeProgress(settings.apiKey, prompt, setText, abort.signal);
       setText(result);
       await logAnalysis(result);
@@ -83,6 +90,20 @@ export function AnalysisPanel({ weights, workouts, meals }: AnalysisPanelProps) 
             </button>
           )}
         </div>
+        {manualPrompt && (
+          <ManualAi
+            prompt={manualPrompt}
+            onAnswer={async (reply) => {
+              const result = reply.trim();
+              setText(result);
+              setManualPrompt(null);
+              await logAnalysis(result);
+            }}
+            onCancel={() => {
+              setManualPrompt(null);
+            }}
+          />
+        )}
         {running && !text && <p className="small muted">{t.analysis.thinking}</p>}
         {text && <Markdown text={text} />}
         {error && <p className="small bad">{t.errors[error]}</p>}

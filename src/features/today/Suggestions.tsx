@@ -1,8 +1,16 @@
 import { useState } from 'react';
+import { ManualAi } from '../../components/ManualAi';
 import { useToast } from '../../components/toast-context';
 import { logMeal } from '../../db/database';
 import { useI18n } from '../../i18n/i18n';
-import { errorCode, suggestMeals, type AiErrorCode, type MealSuggestion } from '../../services/ai';
+import {
+  errorCode,
+  parseReply,
+  replyFormat,
+  suggestMeals,
+  type AiErrorCode,
+  type MealSuggestion,
+} from '../../services/ai';
 import { suggestionsPrompt } from '../../services/prompts';
 import type { Meal, Settings } from '../../types';
 
@@ -16,6 +24,7 @@ interface SuggestionsProps {
 type State =
   | { status: 'idle' }
   | { status: 'loading' }
+  | { status: 'manual'; prompt: string }
   | { status: 'target-reached' }
   | { status: 'done'; options: MealSuggestion[] }
   | { status: 'error'; code: AiErrorCode };
@@ -30,16 +39,20 @@ export function Suggestions({ settings, todaysMeals, kcalLeft, proteinLeft }: Su
       setState({ status: 'target-reached' });
       return;
     }
+    const prompt = suggestionsPrompt({
+      profile: settings,
+      hour: new Date().getHours(),
+      eatenToday: todaysMeals,
+      kcalLeft,
+      proteinLeft,
+      locale,
+    });
+    if (!settings.apiKey) {
+      setState({ status: 'manual', prompt: `${prompt}\n\n${await replyFormat('suggestions')}` });
+      return;
+    }
     setState({ status: 'loading' });
     try {
-      const prompt = suggestionsPrompt({
-        profile: settings,
-        hour: new Date().getHours(),
-        eatenToday: todaysMeals,
-        kcalLeft,
-        proteinLeft,
-        locale,
-      });
       setState({ status: 'done', options: await suggestMeals(settings.apiKey, prompt) });
     } catch (error) {
       setState({ status: 'error', code: errorCode(error) });
@@ -68,6 +81,18 @@ export function Suggestions({ settings, todaysMeals, kcalLeft, proteinLeft }: Su
       >
         {state.status === 'loading' ? t.suggestions.loading : t.suggestions.ask}
       </button>
+      {state.status === 'manual' && (
+        <ManualAi
+          prompt={state.prompt}
+          onAnswer={async (reply) => {
+            const { options } = await parseReply('suggestions', reply);
+            setState({ status: 'done', options });
+          }}
+          onCancel={() => {
+            setState({ status: 'idle' });
+          }}
+        />
+      )}
       {state.status === 'target-reached' && <p className="small">{t.suggestions.done}</p>}
       {state.status === 'error' && <p className="small bad">{t.errors[state.code]}</p>}
       {state.status === 'done' && (

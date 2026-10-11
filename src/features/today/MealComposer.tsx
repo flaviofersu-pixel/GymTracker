@@ -1,9 +1,16 @@
 import { useId, useRef, useState } from 'react';
+import { ManualAi } from '../../components/ManualAi';
 import { useToast } from '../../components/toast-context';
 import { MEAL_PRESETS, type MealPreset } from '../../data/plan';
 import { logMeal } from '../../db/database';
 import { useI18n } from '../../i18n/i18n';
-import { errorCode, estimateMeal, type MealEstimate } from '../../services/ai';
+import {
+  errorCode,
+  estimateMeal,
+  parseReply,
+  replyFormat,
+  type MealEstimate,
+} from '../../services/ai';
 import { mealEstimatePrompt } from '../../services/prompts';
 import type { MealSource, Settings } from '../../types';
 import { MealReview, type MealDraft } from './MealReview';
@@ -18,6 +25,8 @@ export function MealComposer({ settings }: { settings: Settings }) {
   // Remounts the review form whenever a new draft arrives, so it starts from fresh values.
   const [draftVersion, setDraftVersion] = useState(0);
   const [busy, setBusy] = useState(false);
+  /** The question to run through the person's own Claude app when there is no API key. */
+  const [manualPrompt, setManualPrompt] = useState<string | null>(null);
   const photoInput = useRef<HTMLInputElement>(null);
 
   const openDraft = (next: MealDraft) => {
@@ -29,6 +38,7 @@ export function MealComposer({ settings }: { settings: Settings }) {
     setDescription('');
     setPhoto(null);
     setDraft(null);
+    setManualPrompt(null);
     if (photoInput.current) photoInput.current.value = '';
   };
 
@@ -37,9 +47,13 @@ export function MealComposer({ settings }: { settings: Settings }) {
       toast(t.composer.needInput);
       return;
     }
+    const prompt = mealEstimatePrompt(settings, description.trim(), photo !== null, locale);
+    if (!settings.apiKey) {
+      setManualPrompt(`${prompt}\n\n${await replyFormat('meal')}`);
+      return;
+    }
     setBusy(true);
     try {
-      const prompt = mealEstimatePrompt(settings, description.trim(), photo !== null, locale);
       const result = await estimateMeal(settings.apiKey, prompt, photo);
       openDraft(fromEstimate(result, photo ? 'photo' : 'text'));
     } catch (error) {
@@ -117,6 +131,20 @@ export function MealComposer({ settings }: { settings: Settings }) {
           {t.composer.manual}
         </button>
       </div>
+
+      {manualPrompt && !draft && (
+        <ManualAi
+          prompt={manualPrompt}
+          hint={photo ? t.manual.photo : undefined}
+          onAnswer={async (reply) => {
+            const result = await parseReply('meal', reply);
+            openDraft(fromEstimate(result, photo ? 'photo' : 'text'));
+          }}
+          onCancel={() => {
+            setManualPrompt(null);
+          }}
+        />
+      )}
 
       {draft && (
         <MealReview

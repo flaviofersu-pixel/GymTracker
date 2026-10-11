@@ -72,7 +72,10 @@ npm install
 npm run dev
 ```
 
-Open the app, fill in the profile, then go to **Progress → AI** and paste an Anthropic API key from [platform.claude.com](https://platform.claude.com/settings/keys) to enable the AI features. Everything else works without one.
+Open the app and fill in the profile. The AI features work in two ways:
+
+- **With an API key:** go to **Progress → AI** and paste an Anthropic API key from [platform.claude.com](https://platform.claude.com/settings/keys). Answers appear inside the app.
+- **Without a key:** each AI feature prepares the question for you to copy into your own Claude app (a Claude Pro plan works), then you paste the reply back. Structured replies are requested as JSON and validated with the same Zod schemas.
 
 ### Scripts
 

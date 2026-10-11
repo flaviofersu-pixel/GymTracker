@@ -7,6 +7,7 @@ export type AiErrorCode =
   | 'service'
   | 'refused'
   | 'photo'
+  | 'badReply'
   | 'unknown';
 
 /** Every AI failure reaches the UI as one of these, so it can show a translated, actionable message. */

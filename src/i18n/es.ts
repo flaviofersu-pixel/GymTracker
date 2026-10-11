@@ -198,7 +198,7 @@ export const es: Messages = {
     title: 'IA',
     apiKey: 'Clave de la API de Anthropic',
     apiKeyHelp:
-      'Las funciones de IA usan tu propia clave. Se guarda solo en este dispositivo y se envía únicamente a la API de Anthropic. Créala en',
+      'Con clave, la IA responde dentro de la app. Sin clave, la app te prepara cada pregunta para pegarla en tu propia app de Claude, y eso sirve con Claude Pro. La clave se guarda solo en este dispositivo y se envía únicamente a la API de Anthropic. Créala en',
     save: 'Guardar clave',
     saved: 'Clave guardada',
   },
@@ -217,6 +217,18 @@ export const es: Messages = {
     invalid: 'Ese archivo no es una copia válida de Cuaderno',
   },
 
+  manual: {
+    intro:
+      'No tienes clave de API, así que puedes usar tu propia app de Claude (sirve con Claude Pro).',
+    copy: '1. Copiar la pregunta',
+    copied: 'Pregunta copiada',
+    open: 'Abrir Claude',
+    photo: 'Adjunta también tu foto en Claude.',
+    paste: '2. Pega aquí la respuesta de Claude',
+    use: 'Usar respuesta',
+    cancel: 'Cancelar',
+  },
+
   errors: {
     missingKey: 'Añade tu clave de la API de Anthropic en Progreso → IA.',
     invalidKey: 'La clave de la API no es válida.',
@@ -226,6 +238,8 @@ export const es: Messages = {
     service: 'El servicio de IA falló. Inténtalo otra vez.',
     refused: 'La IA no pudo con eso. Prueba a describirlo de otra forma.',
     photo: 'No se pudo leer la foto. Prueba con otra.',
+    badReply:
+      'No se pudo leer esa respuesta. Pega la respuesta completa de Claude, incluida la parte entre { y }.',
     unknown: 'Algo falló al hablar con la IA. Inténtalo otra vez.',
   },
 

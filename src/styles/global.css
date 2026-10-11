@@ -226,6 +226,7 @@ input:disabled {
   color: var(--fg);
   text-transform: none;
   letter-spacing: normal;
+  text-decoration: none;
 }
 .button--primary {
   background: var(--accent);

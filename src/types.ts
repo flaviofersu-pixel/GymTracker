@@ -55,7 +55,7 @@ export interface Analysis {
   text: string;
 }
 
-export type Locale = 'en' | 'es';
+export type Locale = 'en' | 'es' | 'nl';
 
 export type Sex = 'male' | 'female';
 export type Goal = 'gain' | 'maintain' | 'lose';

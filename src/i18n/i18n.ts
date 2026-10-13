@@ -2,8 +2,9 @@ import { createContext, use } from 'react';
 import type { Locale } from '../types';
 import { en, type Messages } from './en';
 import { es } from './es';
+import { nl } from './nl';
 
-export const MESSAGES: Record<Locale, Messages> = { en, es };
+export const MESSAGES: Record<Locale, Messages> = { en, es, nl };
 export const LOCALES = Object.keys(MESSAGES) as Locale[];
 
 const STORAGE_KEY = 'locale';

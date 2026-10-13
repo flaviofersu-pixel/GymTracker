@@ -18,6 +18,7 @@ import type {
 const LANGUAGE: Record<Locale, string> = {
   en: 'English',
   es: 'Spanish, addressing the person as "tú"',
+  nl: 'Dutch, addressing the person as "je"',
 };
 
 const GOAL: Record<Goal, string> = {

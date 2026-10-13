@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ToastProvider } from './components/Toast';
+import { MealsView } from './features/meals/MealsView';
 import { ProgressView } from './features/progress/ProgressView';
 import { TodayView } from './features/today/TodayView';
 import { TrainingView } from './features/training/TrainingView';
@@ -10,6 +11,7 @@ import { LOCALES, MESSAGES, useI18n } from './i18n/i18n';
 
 const TABS = {
   today: TodayView,
+  meals: MealsView,
   weight: WeightView,
   training: TrainingView,
   progress: ProgressView,

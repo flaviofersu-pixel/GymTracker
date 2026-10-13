@@ -1,4 +1,5 @@
 import type { Messages } from './en';
+import { mealIdeasEs } from './mealIdeas.es';
 
 const plural = (n: number, one: string, many: string) => `${String(n)} ${n === 1 ? one : many}`;
 
@@ -9,7 +10,13 @@ export const es: Messages = {
   app: {
     name: 'GymTracker',
     tagline: (goal, days) => `${goal} · ${String(days)} días por semana`,
-    tabs: { today: 'Hoy', weight: 'Peso', training: 'Entreno', progress: 'Progreso' },
+    tabs: {
+      today: 'Hoy',
+      meals: 'Comidas',
+      weight: 'Peso',
+      training: 'Entreno',
+      progress: 'Progreso',
+    },
     language: 'Idioma',
   },
 
@@ -326,4 +333,24 @@ export const es: Messages = {
     banana: { name: 'Plátano', details: '1 mediano' },
     peanuts: { name: 'Cacahuetes', details: 'Un puñado, unos 30 g' },
   },
+
+  meals: {
+    title: 'Ideas de comidas',
+    intro: 'Comidas listas con cantidades. Toca Añadir para apuntarla como comida ahora.',
+    left: (kcal, protein) =>
+      `Te quedan hoy: ${String(kcal)} kcal · ${String(protein)} g de proteína`,
+    categories: {
+      breakfast: 'Desayuno',
+      lunch: 'Comida',
+      dinner: 'Cena',
+      snack: 'Snacks',
+      shake: 'Batidos',
+    },
+    summary: (kcal, protein) => `${String(kcal)} kcal · ${String(protein)} g prot`,
+    ingredients: 'Ingredientes',
+    add: 'Añadir',
+    addLabel: (name) => `Añadir ${name}`,
+  },
+
+  mealIdeas: mealIdeasEs,
 };

@@ -1,5 +1,7 @@
+import type { MealCategory } from '../data/meals';
 import type { ExerciseId, PresetId, SplitPresetId } from '../data/plan';
 import type { Activity, Goal, RoutineId, Sex } from '../types';
+import { mealIdeasEn } from './mealIdeas.en';
 
 const plural = (n: number, one: string, many: string) => `${String(n)} ${n === 1 ? one : many}`;
 
@@ -10,7 +12,13 @@ export const en = {
   app: {
     name: 'GymTracker',
     tagline: (goal: string, days: number) => `${goal} · ${String(days)} days a week`,
-    tabs: { today: 'Today', weight: 'Weight', training: 'Training', progress: 'Progress' },
+    tabs: {
+      today: 'Today',
+      meals: 'Meals',
+      weight: 'Weight',
+      training: 'Training',
+      progress: 'Progress',
+    },
     language: 'Language',
   },
 
@@ -344,6 +352,27 @@ export const en = {
     banana: { name: 'Banana', details: '1 medium' },
     peanuts: { name: 'Peanuts', details: 'A handful, about 30 g' },
   } satisfies Record<PresetId, { name: string; details: string }>,
+
+  meals: {
+    title: 'Meal ideas',
+    intro: 'Ready-made meals with amounts. Tap Add to log one as eaten now.',
+    left: (kcal: number, protein: number) =>
+      `Left today: ${String(kcal)} kcal · ${String(protein)} g protein`,
+    categories: {
+      breakfast: 'Breakfast',
+      lunch: 'Lunch',
+      dinner: 'Dinner',
+      snack: 'Snacks',
+      shake: 'Shakes',
+    } satisfies Record<MealCategory, string>,
+    summary: (kcal: number, protein: number) =>
+      `${String(kcal)} kcal · ${String(protein)} g protein`,
+    ingredients: 'Ingredients',
+    add: 'Add',
+    addLabel: (name: string) => `Add ${name}`,
+  },
+
+  mealIdeas: mealIdeasEn,
 };
 
 export type Messages = typeof en;

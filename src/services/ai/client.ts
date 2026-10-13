@@ -10,9 +10,20 @@ import {
   type MealSuggestion,
 } from './schemas';
 
-const MODEL = 'claude-opus-5-5';
+/** Each task uses the cheapest model that handles it well. */
+const MODELS = {
+  /** Quick meal ideas that fill a calorie and protein gap. */
+  suggestions: 'claude-haiku-5-5',
+  /** Portion and calorie estimates from a description or photo. */
+  meal: 'claude-sonnet-5-5',
+  /** The weekly review reasons over weeks of logs, so it gets the strongest model. */
+  review: 'claude-opus-5-5',
+} as const;
 
-/** On a policy decline the API re-runs the request on a suitable fallback model. */
+/**
+ * On a policy decline the API re-runs the request on a suitable fallback model.
+ * Haiku has no server-side fallback, so suggestions are sent without it.
+ */
 const fallback = () => ({
   betas: ['server-side-fallback-2026-07-01'],
   fallbacks: 'default' as const,
@@ -65,7 +76,7 @@ export function estimateMeal(
 
     const response = await client.beta.messages.parse({
       ...fallback(),
-      model: MODEL,
+      model: MODELS.meal,
       max_tokens: 16000,
       output_config: { effort: 'low', format: betaZodOutputFormat(mealEstimateSchema) },
       messages: [{ role: 'user', content }],
@@ -80,8 +91,7 @@ export function estimateMeal(
 export function suggestMeals(apiKey: string, prompt: string): Promise<MealSuggestion[]> {
   return request(async () => {
     const response = await createClient(apiKey).beta.messages.parse({
-      ...fallback(),
-      model: MODEL,
+      model: MODELS.suggestions,
       max_tokens: 16000,
       output_config: { effort: 'low', format: betaZodOutputFormat(suggestionSchema) },
       messages: [{ role: 'user', content: prompt }],
@@ -104,7 +114,7 @@ export function analyzeProgress(
     const stream = createClient(apiKey).beta.messages.stream(
       {
         ...fallback(),
-        model: MODEL,
+        model: MODELS.review,
         max_tokens: 64000,
         output_config: { effort: 'medium' },
         messages: [{ role: 'user', content: prompt }],

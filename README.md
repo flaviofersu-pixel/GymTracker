@@ -4,7 +4,7 @@ An installable training and nutrition log for anyone who wants to gain muscle, l
 
 Available in English and Spanish. Works offline and installs to the home screen on Android and iOS.
 
-**Live demo:** https://flaviofersu-pixel.github.io/cuaderno-70/
+**Live demo:** https://flaviofersu-pixel.github.io/gymtracker/
 
 <p>
   <img src="docs/onboarding.png" width="260" alt="First-run profile with goal, activity, training days and recommended targets" />

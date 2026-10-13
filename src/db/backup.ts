@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { LOAD_INCREMENT_KG, ROUTINE_IDS, type ExerciseId } from '../data/plan';
-import { db, type CuadernoDB } from './database';
+import { db, type GymTrackerDB } from './database';
 
 const BACKUP_VERSION = 1;
 
@@ -43,7 +43,7 @@ export type Backup = z.infer<typeof backupSchema>;
 const withoutId = <T extends { id?: number }>({ id: _id, ...rest }: T): Omit<T, 'id'> => rest;
 
 /** Everything except settings, so the API key never ends up in a shared file. */
-export async function exportBackup(database: CuadernoDB = db): Promise<Backup> {
+export async function exportBackup(database: GymTrackerDB  = db): Promise<Backup> {
   const [weights, meals, workouts, analyses] = await Promise.all([
     database.weights.toArray(),
     database.meals.toArray(),
@@ -61,7 +61,7 @@ export async function exportBackup(database: CuadernoDB = db): Promise<Backup> {
 }
 
 /** Replaces all logged data with the backup's contents. Throws if the file is not a valid backup. */
-export async function importBackup(raw: unknown, database: CuadernoDB = db): Promise<Backup> {
+export async function importBackup(raw: unknown, database: GymTrackerDB  = db): Promise<Backup> {
   const backup = backupSchema.parse(raw);
   await database.transaction(
     'rw',

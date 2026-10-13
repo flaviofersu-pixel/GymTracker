@@ -7,7 +7,7 @@ export const es: Messages = {
   languageName: 'Español',
 
   app: {
-    name: 'Cuaderno',
+    name: 'GymTracker',
     tagline: (goal, days) => `${goal} · ${String(days)} días por semana`,
     tabs: { today: 'Hoy', weight: 'Peso', training: 'Entreno', progress: 'Progreso' },
     language: 'Idioma',
@@ -214,7 +214,7 @@ export const es: Messages = {
     cancel: 'Cancelar',
     restored: (weights, sessions) =>
       `Copia restaurada: ${plural(weights, 'peso', 'pesos')}, ${plural(sessions, 'sesión', 'sesiones')}`,
-    invalid: 'Ese archivo no es una copia válida de Cuaderno',
+    invalid: 'Ese archivo no es una copia válida de gymtracker',
   },
 
   manual: {

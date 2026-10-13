@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { exportBackup, importBackup } from './backup';
-import { CuadernoDB, saveSettings } from './database';
+import { GymTrackerDB, saveSettings } from './database';
 
-const created: CuadernoDB[] = [];
+const created: GymTrackerDB[] = [];
 const freshDb = () => {
-  const database = new CuadernoDB(`test-${crypto.randomUUID()}`);
+  const database = new GymTrackerDB(`test-${crypto.randomUUID()}`);
   created.push(database);
   return database;
 };

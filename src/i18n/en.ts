@@ -232,7 +232,7 @@ export const en = {
     cancel: 'Cancel',
     restored: (weights: number, sessions: number) =>
       `Backup restored: ${plural(weights, 'weigh-in', 'weigh-ins')}, ${plural(sessions, 'session', 'sessions')}`,
-    invalid: 'That file isn’t a valid Cuaderno backup',
+    invalid: 'That file isn’t a valid gymtracker backup',
   },
 
   manual: {

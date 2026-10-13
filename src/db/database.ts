@@ -8,14 +8,14 @@ interface SettingsRow extends Settings {
   id: 'main';
 }
 
-export class CuadernoDB extends Dexie {
+export class GymTrackerDB extends Dexie {
   weights!: EntityTable<WeightEntry, 'date'>;
   meals!: EntityTable<Meal, 'id'>;
   workouts!: EntityTable<Workout, 'id'>;
   analyses!: EntityTable<Analysis, 'id'>;
   settings!: EntityTable<SettingsRow, 'id'>;
 
-  constructor(name = 'cuaderno-70') {
+  constructor(name = 'gymTracker') {
     super(name);
     this.version(1).stores({
       weights: 'date',
@@ -27,16 +27,16 @@ export class CuadernoDB extends Dexie {
   }
 }
 
-export const db = new CuadernoDB();
+export const db = new GymTrackerDB();
 
-export async function loadSettings(database: CuadernoDB = db): Promise<Settings> {
+export async function loadSettings(database: GymTrackerDB = db): Promise<Settings> {
   const row = await database.settings.get('main');
   return { ...DEFAULT_SETTINGS, ...row };
 }
 
 export async function saveSettings(
   patch: Partial<Settings>,
-  database: CuadernoDB = db,
+  database: GymTrackerDB = db,
 ): Promise<void> {
   const current = await loadSettings(database);
   await database.settings.put({ ...current, ...patch, id: 'main' });

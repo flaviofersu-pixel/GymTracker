@@ -1,4 +1,4 @@
-# Cuaderno
+# Gymtracker
 
 An installable training and nutrition log for anyone who wants to gain muscle, lose fat or hold their weight. Set up a short profile and the app works out your daily calories and protein, picks a training split for the days you can train, and tracks your progress: log your morning weight, follow your routine with automatic progression hints, estimate meals from a photo or a plain description instead of weighing food, and get a weekly AI review of how it is going.
 

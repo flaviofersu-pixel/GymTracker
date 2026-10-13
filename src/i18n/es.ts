@@ -1,5 +1,6 @@
 import type { Messages } from './en';
 import { mealIdeasEs } from './mealIdeas.es';
+import { mealStepsEs } from './mealSteps.es';
 
 const plural = (n: number, one: string, many: string) => `${String(n)} ${n === 1 ? one : many}`;
 
@@ -350,7 +351,9 @@ export const es: Messages = {
     ingredients: 'Ingredientes',
     add: 'Añadir',
     addLabel: (name) => `Añadir ${name}`,
+    howTo: 'Cómo se prepara',
   },
 
   mealIdeas: mealIdeasEs,
+  mealSteps: mealStepsEs,
 };

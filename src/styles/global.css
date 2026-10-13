@@ -546,14 +546,66 @@ input:disabled {
 /* Meals */
 .meal-idea {
   display: grid;
-  grid-template-columns: 72px 1fr auto;
-  gap: 12px;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
   align-items: start;
   padding: 12px 0;
   border-top: 1px solid var(--line);
 }
 .meal-idea:first-child {
   border-top: 0;
+}
+.meal-idea__toggle {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.meal-idea__title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.meal-idea__more {
+  color: var(--accent);
+  font-weight: 600;
+}
+.meal-idea__more::after {
+  content: ' ▾';
+}
+.meal-idea__toggle[aria-expanded='true'] .meal-idea__more::after {
+  content: ' ▴';
+}
+/* Ingredients and steps line up with the meal name, to the right of the photo. */
+.meal-idea__body {
+  grid-column: 1 / -1;
+  padding-left: 84px;
+}
+.meal-idea__steps {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--soft);
+}
+.meal-idea__steps h4 {
+  font-size: 14px;
+  text-transform: uppercase;
+}
+.meal-idea__steps ol {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.meal-idea__steps[hidden] {
+  display: none;
 }
 .meal-idea__photo {
   width: 72px;

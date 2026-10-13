@@ -2,6 +2,7 @@ import type { MealCategory } from '../data/meals';
 import type { ExerciseId, PresetId, SplitPresetId } from '../data/plan';
 import type { Activity, Goal, RoutineId, Sex } from '../types';
 import { mealIdeasEn } from './mealIdeas.en';
+import { mealStepsEn } from './mealSteps.en';
 
 const plural = (n: number, one: string, many: string) => `${String(n)} ${n === 1 ? one : many}`;
 
@@ -370,9 +371,11 @@ export const en = {
     ingredients: 'Ingredients',
     add: 'Add',
     addLabel: (name: string) => `Add ${name}`,
+    howTo: 'How to make it',
   },
 
   mealIdeas: mealIdeasEn,
+  mealSteps: mealStepsEn,
 };
 
 export type Messages = typeof en;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useToast } from '../../components/toast-context';
 import { MEAL_CATEGORIES, MEAL_IDEAS, type MealCategory, type MealIdea } from '../../data/meals';
 import { logMeal } from '../../db/database';
@@ -56,21 +56,30 @@ export function MealsView() {
   );
 }
 
+/** A meal with its ingredients; tapping it opens the preparation steps. */
 function MealIdeaCard({ idea, onAdd }: { idea: MealIdea; onAdd: () => void }) {
   const { t } = useI18n();
+  const stepsId = useId();
+  const [open, setOpen] = useState(false);
   const copy = t.mealIdeas[idea.id];
   return (
     <li className="meal-idea">
-      <MealPhoto idea={idea} />
-      <div className="item__main">
-        <strong>{copy.name}</strong>
-        <div className="small muted num">{t.meals.summary(idea.kcal, idea.proteinG)}</div>
-        <ul className="small meal-idea__ingredients" aria-label={t.meals.ingredients}>
-          {copy.ingredients.map((ingredient) => (
-            <li key={ingredient}>{ingredient}</li>
-          ))}
-        </ul>
-      </div>
+      <button
+        type="button"
+        className="meal-idea__toggle"
+        aria-expanded={open}
+        aria-controls={stepsId}
+        onClick={() => {
+          setOpen((o) => !o);
+        }}
+      >
+        <MealPhoto idea={idea} />
+        <span className="meal-idea__title">
+          <strong>{copy.name}</strong>
+          <span className="small muted num">{t.meals.summary(idea.kcal, idea.proteinG)}</span>
+          <span className="small meal-idea__more">{t.meals.howTo}</span>
+        </span>
+      </button>
       <button
         type="button"
         className="chip"
@@ -79,6 +88,21 @@ function MealIdeaCard({ idea, onAdd }: { idea: MealIdea; onAdd: () => void }) {
       >
         {t.meals.add}
       </button>
+      <div className="meal-idea__body">
+        <ul className="small meal-idea__ingredients" aria-label={t.meals.ingredients}>
+          {copy.ingredients.map((ingredient) => (
+            <li key={ingredient}>{ingredient}</li>
+          ))}
+        </ul>
+        <div id={stepsId} className="meal-idea__steps" hidden={!open}>
+          <h4>{t.meals.howTo}</h4>
+          <ol className="small">
+            {t.mealSteps[idea.id].map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </div>
+      </div>
     </li>
   );
 }
@@ -88,9 +112,9 @@ function MealPhoto({ idea }: { idea: MealIdea }) {
   const [missing, setMissing] = useState(false);
   if (missing) {
     return (
-      <div className="meal-idea__photo meal-idea__photo--emoji" aria-hidden="true">
+      <span className="meal-idea__photo meal-idea__photo--emoji" aria-hidden="true">
         {idea.emoji}
-      </div>
+      </span>
     );
   }
   return (

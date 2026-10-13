@@ -3,7 +3,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 
 // GitHub Pages serves the app from /<repo>/; local dev and previews use the root.
-const base = process.env.GITHUB_PAGES === 'true' ? '/gymtracker/' : '/';
+const base = process.env.GITHUB_PAGES === 'true' ? '/GymTracker/' : '/';
 
 export default defineConfig({
   base,

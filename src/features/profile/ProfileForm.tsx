@@ -2,21 +2,62 @@ import { useId, useState } from 'react';
 import { Choice } from '../../components/Choice';
 import { parseDecimal } from '../../components/format';
 import { useToast } from '../../components/toast-context';
-import { SPLITS, TRAINING_DAY_OPTIONS } from '../../data/plan';
+import {
+  ROUTINE_IDS,
+  SPLITS,
+  SPLIT_PRESETS,
+  SPLIT_PRESET_IDS,
+  TRAINING_DAY_OPTIONS,
+  rotationFor,
+  type SplitPresetId,
+} from '../../data/plan';
 import { saveProfile } from '../../db/database';
 import { recommendedTargets } from '../../domain/targets';
 import { useI18n } from '../../i18n/i18n';
-import type { Activity, Goal, Profile, Settings, Sex } from '../../types';
+import type { Activity, Goal, Profile, RoutineId, Settings, Sex } from '../../types';
 
 const SEXES: readonly Sex[] = ['male', 'female'];
 const GOALS: readonly Goal[] = ['gain', 'maintain', 'lose'];
 const ACTIVITIES: readonly Activity[] = ['low', 'moderate', 'high'];
 
+/** Follow the recommendation for the training days, pick a common split, or build one. */
+type RotationMode = 'recommended' | SplitPresetId | 'custom';
+/** Only splits that train each routine at least once a week, so nothing waits over a week. */
+const rotationModesFor = (days: number): RotationMode[] => [
+  'recommended',
+  ...SPLIT_PRESET_IDS.filter((id) => SPLIT_PRESETS[id].length <= days),
+  'custom',
+];
+
 type NumberField = 'age' | 'heightCm' | 'startWeightKg' | 'goalWeightKg';
 type Choices = Pick<Profile, 'sex' | 'goal' | 'activity' | 'trainingDays'>;
 
 /** Form values: choices as typed values, numbers as the strings being edited. */
-interface Form extends Choices, Record<NumberField | 'kcalTarget' | 'proteinTarget', string> {}
+interface Form extends Choices, Record<NumberField | 'kcalTarget' | 'proteinTarget', string> {
+  rotationMode: RotationMode;
+  /** The routines picked so far for a custom split, in training order. */
+  customRotation: RoutineId[];
+}
+
+const sameRoutines = (a: readonly RoutineId[], b: readonly RoutineId[]) =>
+  a.length === b.length && a.every((id, i) => id === b[i]);
+
+function toRotationMode(rotation: readonly RoutineId[] | undefined): RotationMode {
+  if (!rotation?.length) return 'recommended';
+  return SPLIT_PRESET_IDS.find((id) => sameRoutines(SPLIT_PRESETS[id], rotation)) ?? 'custom';
+}
+
+/** The routines the form's split choice rotates through, which may be empty while building one. */
+function formRotation(form: Form): readonly RoutineId[] {
+  switch (form.rotationMode) {
+    case 'recommended':
+      return SPLITS[form.trainingDays];
+    case 'custom':
+      return form.customRotation;
+    default:
+      return SPLIT_PRESETS[form.rotationMode];
+  }
+}
 
 /** Plausible ranges, so a typo cannot produce nonsense targets. */
 const LIMITS: Record<NumberField, [number, number]> = {
@@ -38,6 +79,8 @@ function toForm(s: Settings): Form {
     goalWeightKg: String(s.goalWeightKg),
     kcalTarget: String(s.kcalTarget),
     proteinTarget: String(s.proteinTarget),
+    rotationMode: toRotationMode(s.rotation),
+    customRotation: [...rotationFor(s)],
   };
 }
 
@@ -85,6 +128,8 @@ export function ProfileForm({ settings, submitLabel, onSaved }: ProfileFormProps
   const toast = useToast();
   const id = useId();
   const [form, setForm] = useState(() => toForm(settings));
+  const routineNames = (ids: readonly RoutineId[]) =>
+    ids.map((r) => t.routines[r].name).join(' → ');
 
   const change = (patch: Partial<Form>) => {
     setForm((prev) => withTargets({ ...prev, ...patch }));
@@ -118,8 +163,15 @@ export function ProfileForm({ settings, submitLabel, onSaved }: ProfileFormProps
       toast(p.invalid);
       return;
     }
+    const rotation = formRotation(form);
+    if (rotation.length === 0) {
+      toast(p.customEmpty);
+      return;
+    }
     await saveProfile({
       ...profile,
+      // Left unset, the split keeps following the recommendation if the training days change.
+      rotation: form.rotationMode === 'recommended' ? undefined : [...rotation],
       kcalTarget: Math.round(kcalTarget),
       proteinTarget: Math.round(proteinTarget),
     });
@@ -174,12 +226,63 @@ export function ProfileForm({ settings, submitLabel, onSaved }: ProfileFormProps
           value={form.trainingDays}
           render={String}
           onChange={(trainingDays) => {
-            change({ trainingDays });
+            // A split with more routines than training days no longer fits, so go back to the recommendation.
+            const fits = formRotation(form).length <= trainingDays;
+            change({ trainingDays, ...(!fits && { rotationMode: 'recommended' as const }) });
           }}
         />
         <p className="small muted">
-          {p.split(SPLITS[form.trainingDays].map((r) => t.routines[r].name).join(' → '))}
+          {p.recommendedSplit(form.trainingDays, routineNames(SPLITS[form.trainingDays]))}
         </p>
+      </div>
+      <div className="stack-sm">
+        <Choice
+          label={p.rotation}
+          options={rotationModesFor(form.trainingDays)}
+          value={form.rotationMode}
+          render={(mode) => p.rotations[mode]}
+          wrap
+          onChange={(rotationMode) => {
+            // Start a custom split from the one shown, so it can be tweaked rather than rebuilt.
+            setForm((prev) => ({
+              ...prev,
+              rotationMode,
+              ...(rotationMode === 'custom' && { customRotation: [...formRotation(prev)] }),
+            }));
+          }}
+        />
+        {form.rotationMode === 'custom' && (
+          <>
+            <p className="small muted">{p.customHint(form.trainingDays)}</p>
+            <div className="chips" role="group" aria-label={p.rotations.custom}>
+              {ROUTINE_IDS.map((routine) => (
+                <button
+                  key={routine}
+                  type="button"
+                  className="chip"
+                  aria-pressed={form.customRotation.includes(routine)}
+                  disabled={
+                    !form.customRotation.includes(routine) &&
+                    form.customRotation.length >= form.trainingDays
+                  }
+                  onClick={() => {
+                    setForm((prev) => ({
+                      ...prev,
+                      customRotation: prev.customRotation.includes(routine)
+                        ? prev.customRotation.filter((r) => r !== routine)
+                        : [...prev.customRotation, routine],
+                    }));
+                  }}
+                >
+                  {t.routines[routine].name}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        {form.rotationMode !== 'recommended' && formRotation(form).length > 0 && (
+          <p className="small">{p.split(routineNames(formRotation(form)))}</p>
+        )}
       </div>
 
       <h3>{p.targets}</h3>

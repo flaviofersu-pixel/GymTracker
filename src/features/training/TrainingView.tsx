@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { parseDecimal } from '../../components/format';
 import { useToast } from '../../components/toast-context';
-import { ROUTINES, SPLITS } from '../../data/plan';
+import { ROUTINES, rotationFor } from '../../data/plan';
 import { db, logWorkout } from '../../db/database';
 import { formatDay, toDateKey } from '../../domain/dates';
 import { heaviest, lastPerformance, nextRoutineInRotation } from '../../domain/progression';
@@ -15,7 +15,7 @@ export function TrainingView() {
   const { t } = useI18n();
   const toast = useToast();
   const workouts = useWorkouts();
-  const split = SPLITS[useSettings().trainingDays];
+  const split = rotationFor(useSettings());
   const today = toDateKey();
   const suggested = nextRoutineInRotation(workouts, split);
   const [picked, setPicked] = useState<RoutineId | null>(null);

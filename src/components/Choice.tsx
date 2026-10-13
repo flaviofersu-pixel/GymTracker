@@ -5,6 +5,8 @@ interface ChoiceProps<T extends string | number> {
   /** Text shown on each option's button. */
   render: (option: T) => string;
   onChange: (option: T) => void;
+  /** Wrap onto several lines instead of scrolling sideways, for long option lists. */
+  wrap?: boolean;
 }
 
 /** A row of toggle buttons for picking one value, labelled for assistive tech as a group. */
@@ -14,11 +16,16 @@ export function Choice<T extends string | number>({
   value,
   render,
   onChange,
+  wrap = false,
 }: ChoiceProps<T>) {
   return (
     <div className="field">
       <span>{label}</span>
-      <div className="segmented" role="group" aria-label={label}>
+      <div
+        className={wrap ? 'segmented segmented--wrap' : 'segmented'}
+        role="group"
+        aria-label={label}
+      >
         {options.map((option) => (
           <button
             key={option}

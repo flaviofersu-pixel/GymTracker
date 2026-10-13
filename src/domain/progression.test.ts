@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { ROUTINES, SPLITS, TRAINING_DAY_OPTIONS, type PlannedExercise } from '../data/plan';
+import {
+  ROUTINES,
+  SPLITS,
+  SPLIT_PRESETS,
+  TRAINING_DAY_OPTIONS,
+  rotationFor,
+  type PlannedExercise,
+} from '../data/plan';
 import type { Workout } from '../types';
 import {
   improvedExercises,
@@ -164,6 +171,26 @@ describe('training splits', () => {
   it('has a rotation for every training-day option and only known routines', () => {
     for (const days of TRAINING_DAY_OPTIONS) {
       expect(SPLITS[days].every((id) => id in ROUTINES)).toBe(true);
+    }
+  });
+
+  it('uses the chosen split over the recommended one', () => {
+    expect(rotationFor({ trainingDays: 4 })).toEqual(['upper', 'lower']);
+    expect(rotationFor({ trainingDays: 4, rotation: [...SPLIT_PRESETS.pplArms] })).toEqual([
+      'push',
+      'pull',
+      'legs',
+      'arms',
+    ]);
+  });
+
+  it('falls back to the recommended split when the chosen one is empty', () => {
+    expect(rotationFor({ trainingDays: 3, rotation: [] })).toEqual(SPLITS[3]);
+  });
+
+  it('only uses known routines in presets', () => {
+    for (const split of Object.values(SPLIT_PRESETS)) {
+      expect(split.every((id) => id in ROUTINES)).toBe(true);
     }
   });
 

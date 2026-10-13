@@ -1,4 +1,4 @@
-import { SPLITS } from '../data/plan';
+import { rotationFor } from '../data/plan';
 import { addDays } from '../domain/dates';
 import { dayTotals } from '../domain/nutrition';
 import { targetPace } from '../domain/targets';
@@ -135,7 +135,9 @@ export function analysisPrompt(
   locale: Locale,
 ): string {
   const pace = targetPace(settings);
-  const split = SPLITS[settings.trainingDays].map((id) => en.routines[id].name).join(' / ');
+  const split = rotationFor(settings)
+    .map((id) => en.routines[id].name)
+    .join(' / ');
   return [
     `You are their strength coach and nutritionist. ${athlete(settings)}`,
     `They follow a ${split} rotation with double progression. Plan rules: weekly change of the ` +

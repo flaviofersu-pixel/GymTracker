@@ -1,4 +1,4 @@
-import type { ExerciseId, PresetId } from '../data/plan';
+import type { ExerciseId, PresetId, SplitPresetId } from '../data/plan';
 import type { Activity, Goal, RoutineId, Sex } from '../types';
 
 const plural = (n: number, one: string, many: string) => `${String(n)} ${n === 1 ? one : many}`;
@@ -201,6 +201,22 @@ export const en = {
     } satisfies Record<Activity, string>,
     days: 'Days you can train per week',
     split: (routines: string) => `Your rotation: ${routines}`,
+    rotation: 'Training split',
+    rotations: {
+      recommended: 'Recommended',
+      fullBody: 'Full body',
+      upperLower: 'Upper / Lower',
+      ppl: 'Push / Pull / Legs',
+      pplArms: 'PPL + Arms',
+      pplUpperLower: 'PPL + Upper / Lower',
+      pplArmsUpperLower: 'PPL + Arms + Upper / Lower',
+      custom: 'Custom',
+    } satisfies Record<SplitPresetId | 'recommended' | 'custom', string>,
+    recommendedSplit: (days: number, routines: string) =>
+      `Recommended for ${String(days)} days: ${routines}`,
+    customHint: (days: number) =>
+      `Tap up to ${String(days)} routines in the order you want to train them. Tap one again to remove it.`,
+    customEmpty: 'Pick at least one routine for your split',
     targets: 'Daily targets',
     kcal: 'Calories per day',
     protein: 'Protein per day (g)',

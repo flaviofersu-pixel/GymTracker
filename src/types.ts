@@ -73,6 +73,8 @@ export interface Profile {
   goalWeightKg: number;
   activity: Activity;
   trainingDays: TrainingDays;
+  /** Routines to rotate through, in order. When unset, the split recommended for the training days. */
+  rotation?: RoutineId[];
 }
 
 export interface Settings extends Profile {

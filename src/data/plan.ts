@@ -185,10 +185,10 @@ export const ROUTINES: Record<RoutineId, Routine> = {
 
 export const ROUTINE_IDS = Object.keys(ROUTINES) as RoutineId[];
 
-type Split = readonly [RoutineId, ...RoutineId[]];
+export type Split = readonly [RoutineId, ...RoutineId[]];
 
 /**
- * The routines to rotate through for each number of training days per week, in order.
+ * The recommended routines to rotate through for each number of training days per week, in order.
  * Every split hits legs at least twice a week.
  */
 export const SPLITS: Record<TrainingDays, Split> = {
@@ -200,6 +200,27 @@ export const SPLITS: Record<TrainingDays, Split> = {
 };
 
 export const TRAINING_DAY_OPTIONS = Object.keys(SPLITS).map(Number) as TrainingDays[];
+
+export type SplitPresetId =
+  'fullBody' | 'upperLower' | 'ppl' | 'pplArms' | 'pplUpperLower' | 'pplArmsUpperLower';
+
+/** Common splits the person can pick instead of the recommended one, whatever their training days. */
+export const SPLIT_PRESETS: Record<SplitPresetId, Split> = {
+  fullBody: ['fullA', 'fullB', 'fullC'],
+  upperLower: ['upper', 'lower'],
+  ppl: ['push', 'pull', 'legs'],
+  pplArms: ['push', 'pull', 'legs', 'arms'],
+  pplUpperLower: ['push', 'pull', 'legs', 'upper', 'lower'],
+  pplArmsUpperLower: ['push', 'pull', 'legs', 'arms', 'upper', 'lower'],
+};
+
+export const SPLIT_PRESET_IDS = Object.keys(SPLIT_PRESETS) as SplitPresetId[];
+
+/** The rotation the person chose, or the one recommended for their training days. */
+export function rotationFor(p: Pick<Profile, 'trainingDays' | 'rotation'>): Split {
+  const [first, ...rest] = p.rotation ?? [];
+  return first ? [first, ...rest] : SPLITS[p.trainingDays];
+}
 
 export type PresetId =
   | 'breakfastShake'

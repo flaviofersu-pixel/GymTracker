@@ -8,7 +8,7 @@ export const en = {
   languageName: 'English',
 
   app: {
-    name: 'Cuaderno',
+    name: 'GymTracker',
     tagline: (goal: string, days: number) => `${goal} · ${String(days)} days a week`,
     tabs: { today: 'Today', weight: 'Weight', training: 'Training', progress: 'Progress' },
     language: 'Language',
